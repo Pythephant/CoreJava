@@ -1,13 +1,16 @@
 package exception07;
 
-import java.awt.Label;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 
 import javax.swing.ImageIcon;
@@ -20,11 +23,32 @@ import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import com.sun.istack.internal.logging.Logger;
-
 public class LoggingImageViewer {
 	public static void main(String[] args) {
+		if (System.getProperty("java.util.logging.config.class") == null
+				&& System.getProperty("java.util.logging.config.file") == null) {
+			try {
+				Logger.getLogger("exception07").setLevel(Level.ALL);
+				final int LOG_ROTATION_COUNT = 10;
+				Handler handler = new FileHandler();
+				
+				Logger.getLogger("exception07").addHandler(handler);
+			} catch (IOException e) {
+				Logger.getLogger("exception07").log(Level.SEVERE, "Can't create log file handler", e);
+			}
+		}
 
+		EventQueue.invokeLater(() -> {
+			Handler windowHandler = new WindowHandler();
+			windowHandler.setLevel(Level.ALL);
+			Logger.getLogger("exception07").addHandler(windowHandler);
+			JFrame frame = new ImageViewerFrame();
+			frame.setTitle("LoggingImageViewer");
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			Logger.getLogger("exception07").fine("showing frame");
+			frame.setVisible(true);
+		});
 	}
 }
 
@@ -32,7 +56,7 @@ class ImageViewerFrame extends JFrame {
 	private static final int DEFAULT_WIDTH = 300;
 	private static final int DEFAULT_HEIGHT = 400;
 	private JLabel label;
-	private static final Logger logger = Logger.getLogger("exception07", null);
+	private static final Logger logger = Logger.getLogger("exception07");
 
 	public ImageViewerFrame() {
 		logger.entering("ImageViewer", "<init>");
@@ -62,7 +86,7 @@ class ImageViewerFrame extends JFrame {
 
 		label = new JLabel();
 		add(label);
-		logger.exiting("ImageViewerFrame, <init>");
+		logger.exiting("ImageViewerFrame", "<init>");
 	}
 
 	private class FileOpenListener implements ActionListener {
@@ -100,7 +124,7 @@ class ImageViewerFrame extends JFrame {
 			} else {
 				logger.fine("File open dialog canceled!");
 			}
-			logger.exiting("ImageViewer.FileOpenListener : actionPerformed");
+			logger.exiting("ImageViewer.FileOpenListener", "actionPerformed");
 
 		}
 
